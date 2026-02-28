@@ -7,16 +7,35 @@ import streamlit as st
 
 def _get_ftp_config():
     ftp_cfg = st.secrets["ftp"] if "ftp" in st.secrets else st.secrets
-    required_keys = ["host", "username", "password", "remote_dir"]
-    missing_keys = [key for key in required_keys if key not in ftp_cfg or not str(ftp_cfg[key]).strip()]
+    alias_map = {
+        "host": ["host", "hostname", "server"],
+        "username": ["username", "user", "user_name", "login"],
+        "password": ["password", "pass", "pwd"],
+        "remote_dir": ["remote_dir", "remoteDir", "remote_path", "path", "directory"],
+    }
+
+    normalized_cfg = {}
+    missing_keys = []
+    for required_key, aliases in alias_map.items():
+        value = None
+        for alias in aliases:
+            if alias in ftp_cfg and str(ftp_cfg[alias]).strip():
+                value = str(ftp_cfg[alias]).strip()
+                break
+        if value is None:
+            missing_keys.append(required_key)
+        else:
+            normalized_cfg[required_key] = value
+
     if missing_keys:
+        available_keys = ", ".join(sorted([str(k) for k in ftp_cfg.keys()])) if hasattr(ftp_cfg, "keys") else "none"
         st.error(
             "Missing FTP configuration. Provide either [ftp] with host/username/password/remote_dir "
-            f"or top-level keys. Missing: {', '.join(missing_keys)}"
+            f"or top-level keys. Missing: {', '.join(missing_keys)}. Found keys: {available_keys}"
         )
         st.stop()
 
-    return {key: str(ftp_cfg[key]).strip() for key in required_keys}
+    return normalized_cfg
 
 
 @st.cache_data(show_spinner=False)
