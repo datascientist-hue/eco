@@ -55,10 +55,8 @@ st.markdown("""
 
 st.markdown('<div class="header-title">📊 Overdue Creditor Report</div>', unsafe_allow_html=True)
 
-# Load Data from FTP
-# Source shared by user:
-# ftp://u363812745.vvd.in@82.112.232.31/public_html/VVD_Hic/data_storage/eco/Overdue_Creditor_Report.csv
-df = load_csv_from_ftp("/public_html/VVD_Hic/data_storage/eco/Overdue_Creditor_Report.csv", encoding="latin-1")
+# Load data from FTP remote_dir configured in Streamlit Secrets
+df = load_csv_from_ftp("Overdue_Creditor_Report.csv", encoding="latin-1")
 
 # rename column for clarity
 if "BP Name" in df.columns:
