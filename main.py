@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 
 st.set_page_config(
     page_title="NK Dashboard Suite",
@@ -25,7 +24,7 @@ st.markdown(
 st.subheader("Quick Navigation")
 
 def safe_page_link(page_file: str, label: str, icon: str, container=st):
-    page_path = Path(__file__).parent / "pages" / page_file
+    page_path = f"pages/{page_file}"
     try:
         container.page_link(page_path, label=label, icon=icon)
     except Exception:
