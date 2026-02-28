@@ -1,4 +1,5 @@
 import io
+from pathlib import PurePosixPath
 from ftplib import FTP
 
 import pandas as pd
@@ -41,22 +42,24 @@ def _get_ftp_config():
 @st.cache_data(show_spinner=False)
 def fetch_csv_bytes(filename: str) -> bytes:
     ftp_cfg = _get_ftp_config()
+    file_name_only = PurePosixPath(str(filename)).name
 
     try:
         with FTP(ftp_cfg["host"], timeout=30) as ftp:
             ftp.login(user=ftp_cfg["username"], passwd=ftp_cfg["password"])
+            ftp.set_pasv(True)
             ftp.cwd(ftp_cfg["remote_dir"])
 
             buffer = io.BytesIO()
-            ftp.retrbinary(f"RETR {filename}", buffer.write)
+            ftp.retrbinary(f"RETR {file_name_only}", buffer.write)
             buffer.seek(0)
             return buffer.getvalue()
     except Exception as exc:
         st.error(
             "FTP read failed. Verify host/username/password and remote_dir in Streamlit Secrets. "
-            f"Tried remote_dir='{ftp_cfg['remote_dir']}' and file='{filename}'."
+            f"Tried remote_dir='{ftp_cfg['remote_dir']}' and file='{file_name_only}'. Error: {exc}"
         )
-        raise RuntimeError(f"FTP fetch failed for {filename}: {exc}") from exc
+        st.stop()
 
 
 def load_csv_from_ftp(filename: str, encoding: str = "latin-1", **read_csv_kwargs) -> pd.DataFrame:
