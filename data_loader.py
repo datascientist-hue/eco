@@ -14,6 +14,15 @@ def _get_ftp_config():
         "password": ["password", "pass", "pwd"],
         "remote_dir": ["remote_dir", "remoteDir", "remote_path", "path", "directory"],
     }
+    file_path_keys = [
+        "inventory",
+        "open_po",
+        "open_so",
+        "overdue",
+        "overdue_creditor",
+        "overdue_payment",
+        "stock_status",
+    ]
 
     normalized_cfg = {}
     missing_keys = []
@@ -23,6 +32,16 @@ def _get_ftp_config():
             if alias in ftp_cfg and str(ftp_cfg[alias]).strip():
                 value = str(ftp_cfg[alias]).strip()
                 break
+
+        if required_key == "remote_dir" and value is None:
+            for key_name in file_path_keys:
+                if key_name in ftp_cfg and str(ftp_cfg[key_name]).strip():
+                    candidate = str(ftp_cfg[key_name]).strip()
+                    parent_dir = str(PurePosixPath(candidate).parent)
+                    if parent_dir and parent_dir != ".":
+                        value = parent_dir
+                        break
+
         if value is None:
             missing_keys.append(required_key)
         else:
